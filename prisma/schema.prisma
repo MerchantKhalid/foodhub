@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum Role {
+  CUSTOMER
+  PROVIDER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum DietaryType {
+  NONE
+  VEGETARIAN
+  VEGAN
+  GLUTEN_FREE
+  DAIRY_FREE
+  NUT_FREE
+  HALAL
+  KOSHER
+}
+
+// Models
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  password  String
+  name      String
+  phone     String?
+  address   String?
+  role      Role
+  status    UserStatus @default(ACTIVE)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  providerProfile ProviderProfile?
+  meals           Meal[]           @relation("ProviderMeals")
+  customerOrders  Order[]          @relation("CustomerOrders")
+  providerOrders  Order[]          @relation("ProviderOrders")
+  reviews         Review[]
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+}
+
+model ProviderProfile {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  restaurantName String
+  description   String?
+  address       String
+  openingHours  String   @default("09:00")
+  closingHours  String   @default("22:00")
+  imageUrl      String?
+  cuisineType   String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantName])
+  @@index([isActive])
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  meals Meal[]
+
+  @@index([name])
+}
+
+model Meal {
+  id          String      @id @default(uuid())
+  providerId  String
+  categoryId  String
+  name        String
+  description String
+  price       Float
+  imageUrl    String?
+  ingredients String?
+  isAvailable Boolean     @default(true)
+  dietaryInfo DietaryType @default(NONE)
+  prepTime    Int         @default(30) // in minutes
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  provider   User        @relation("ProviderMeals", fields: [providerId], references: [id], onDelete: Cascade)
+  category   Category    @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+  reviews    Review[]
+
+  @@index([providerId])
+  @@index([categoryId])
+  @@index([isAvailable])
+  @@index([price])
+  @@index([dietaryInfo])
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  customerId      String
+  providerId      String
+  status          OrderStatus @default(PENDING)
+  deliveryAddress String
+  contactPhone    String
+  orderNotes      String?
+  totalAmount     Float
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  customer   User        @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: Cascade)
+  provider   User        @relation("ProviderOrders", fields: [providerId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+  reviews    Review[]
+
+  @@index([customerId])
+  @@index([providerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id           String   @id @default(uuid())
+  orderId      String
+  mealId       String
+  quantity     Int
+  priceAtOrder Float
+  createdAt    DateTime @default(now())
+
+  // Relations
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  meal  Meal  @relation(fields: [mealId], references: [id])
+
+  @@index([orderId])
+  @@index([mealId])
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  customerId String
+  mealId     String
+  orderId    String
+  rating     Int      // 1-5
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  customer User  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  meal     Meal  @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  order    Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, mealId, orderId])
+  @@index([mealId])
+  @@index([rating])
+}
