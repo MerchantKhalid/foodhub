@@ -1,11 +1,19 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
+import type { SignOptions } from 'jsonwebtoken';
+
 import { PrismaClient, Role } from '@prisma/client';
 import { AuthRequest, RegisterInput, LoginInput } from '../types';
 import { sendSuccess, sendError } from '../utils/helpers';
 
 const prisma = new PrismaClient();
+
+const JWT_SECRET = process.env.JWT_SECRET!;
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET not defined');
+}
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -70,9 +78,15 @@ export const register = async (req: Request, res: Response) => {
 
     // Generate JWT
     const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET as string,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+      },
+      JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+      },
     );
 
     return sendSuccess(res, { user, token }, 'Registration successful', 201);
@@ -112,9 +126,15 @@ export const login = async (req: Request, res: Response) => {
 
     // Generate JWT
     const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET as string,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+      },
+      JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+      },
     );
 
     // Remove password from response
