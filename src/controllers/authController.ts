@@ -355,22 +355,22 @@ export const register = async (req: Request, res: Response) => {
     const jwtSecret: string = process.env.JWT_SECRET;
     const jwtExpiresIn: string = process.env.JWT_EXPIRES_IN || '7d';
 
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-      },
-      jwtSecret,
-      { expiresIn: jwtExpiresIn },
-    );
+//     const token = jwt.sign(
+//       {
+//         userId: user.id,
+//         email: user.email,
+//         role: user.role,
+//       },
+//       jwtSecret,
+//       { expiresIn: jwtExpiresIn },
+//     );
 
-    return sendSuccess(res, { user, token }, 'Registration successful', 201);
-  } catch (error) {
-    console.error('Registration error:', error);
-    return sendError(res, 'Registration failed', 500);
-  }
-};
+//     return sendSuccess(res, { user, token }, 'Registration successful', 201);
+//   } catch (error) {
+//     console.error('Registration error:', error);
+//     return sendError(res, 'Registration failed', 500);
+//   }
+// };
 
 export const login = async (req: Request, res: Response) => {
   try {
