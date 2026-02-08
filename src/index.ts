@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-
 import authRoutes from './routes/authRoutes';
 import mealRoutes from './routes/mealRoutes';
 import providerRoutes from './routes/providerRoutes';

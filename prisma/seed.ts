@@ -543,8 +543,8 @@ async function main() {
   console.log('   Provider: chef@burgerking.com / password123');
   console.log('   Provider: sushi@master.com / password123');
   console.log('   Provider: spice@indiancurry.com / password123');
-  console.log('   Customer: john@customer.com / password123');
-  console.log('   Customer: jane@customer.com / password123');
+  console.log('   Customer: Hasan@customer.com / password123');
+  console.log('   Customer: khalid@customer.com / password123');
 }
 
 main()
